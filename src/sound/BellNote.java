@@ -1,8 +1,8 @@
 package sound;
 
 public class BellNote {
-    final Note note;
-    final NoteLength length;
+    private final Note note;
+    private final NoteLength length;
 
     public BellNote(Note note, NoteLength length) {
         this.note = note;
