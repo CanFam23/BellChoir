@@ -1,21 +1,32 @@
-<project name="Hello" default="compile" basedir=".">
-  <!-- set global properties for this build -->
+<project name="BellChoir" default="run" basedir=".">
+  <!-- Set global properties -->
   <property name="src" location="src"/>
   <property name="dist" location="dist"/>
-  <presetdef name="javac">
-    <javac includeantruntime="false" debug="true"/>
-  </presetdef>
+  <property name="main.class" value="Conductor"/>
 
+<!-- Handles the Song Argument, default is empty-->
+  <target name="songarg">
+    <property name="song" value=""/>
+  </target>
+
+<!-- Create distribution (dist) folder to store the output / final build artifacts of project -->
   <target name="init">
     <mkdir dir="${dist}"/>
     <mkdir dir="${dist}/classes"/>
   </target>
 
+<!-- Compiles Java Files, depends in init -->
   <target name="compile" depends="init">
     <javac srcdir="${src}" destdir="${dist}/classes"/>
   </target>
 
-  <target name="jar" depends="init,compile">
+<!-- Disables including Ant’s runtime in the compilation and enables debugging symbols.-->
+  <presetdef name="javac">
+    <javac includeantruntime="false" debug="true"/>
+  </presetdef>
+
+<!-- Creates a JAR File, depends on compile -->
+  <target name="jar" depends="compile">
     <jar destfile="${dist}/${ant.project.name}.jar" basedir="${dist}/classes">
       <manifest>
         <attribute name="Main-Class" value="${ant.project.name}"/>
@@ -23,17 +34,19 @@
     </jar>
   </target>
 
-  <target name="songarg" unless="song">
-    <property name="song" value="${basedir}/MaryLamb.txt"/>
-  </target>
-
+<!-- Runs the Program, depends on jar and songarg -->
   <target name="run" depends="jar,songarg">
-    <java jar="${dist}/${ant.project.name}.jar" fork="true">
+    <java classname="${main.class}" fork="true">
+      <classpath>
+        <pathelement location="${dist}/${ant.project.name}.jar"/>
+      </classpath>
       <arg value="${song}"/>
     </java>
   </target>
 
+<!-- Deletes the dist/ directory (removes compiled files and JAR) -->
   <target name="clean">
     <delete dir="${dist}"/>
   </target>
 </project>
+
