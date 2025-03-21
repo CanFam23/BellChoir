@@ -49,30 +49,8 @@ public class SongReader {
     public boolean validateData(List<BellNote> notes, String fileName) {
         boolean success = true;
 
-        final String filePath = FILE_DIRECTORY + fileName;
-        final File file = new File(filePath);
-        int fileSize = 0;
-
-        //Make sure files exist
-        if (!file.exists()) {
-            System.err.println("File not found at " + filePath);
-            return false;
-        }
-
-        //Count number of lines in the file
-        try (final BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine();
-            while (line != null) {
-                fileSize++;
-                line = br.readLine();
-            }
-
-        } catch (IOException ignored) {
-        }
-
-        //Make sure file size equals the size of the notes list given
-        if (fileSize != notes.size()) {
-            System.err.println("File length (" + fileSize + ") does not match number of notes given (" + notes.size() + ")");
+        if (notes.isEmpty()) {
+            System.err.println("No valid notes found");
             success = false;
         }
 
