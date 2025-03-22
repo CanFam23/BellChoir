@@ -26,10 +26,10 @@ public class SongReader {
                 String[] tokens = line.split(" ");
 
                 final Note note = parseNote(tokens[0]);
-                System.out.println(note);
+//                System.out.println(note);
 
                 final NoteLength noteLength = parseNoteLength(tokens[1]);
-                System.out.println(noteLength);
+//                System.out.println(noteLength);
 
                 if (note != Note.INVALID && noteLength != NoteLength.INVALID) {
                     final BellNote bellNote = new BellNote(note, noteLength);
