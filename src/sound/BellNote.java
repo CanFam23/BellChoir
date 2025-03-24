@@ -19,8 +19,13 @@ public class BellNote {
         return length;
     }
 
+    @Override
     public String toString() {
-        return "Note: " + note + " | Length: " + length;
+        final StringBuilder sb = new StringBuilder("BellNote{");
+        sb.append("note=").append(note);
+        sb.append(", length=").append(length);
+        sb.append('}');
+        return sb.toString();
     }
 
     @Override
