@@ -1,4 +1,4 @@
-package sound;
+package main.sound;
 
 public enum NoteLength {
     WHOLE(1.0f),

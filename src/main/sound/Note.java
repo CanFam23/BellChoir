@@ -1,4 +1,4 @@
-package sound;
+package main.sound;
 
 public enum Note {
     // REST Must be the first 'Note'

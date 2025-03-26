@@ -1,4 +1,4 @@
-package sound;
+package main.sound;
 
 import java.util.Objects;
 

@@ -9,20 +9,17 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /*
 TODO:
  - Conductor controls tempo of program
- - Have reentrant lock, make members wait with (Lock) until its their time to play
-    - Fairness lock so members are granted lock in order them came
- - Member will play when they have the lock, and then unlock the lock once they are done
- - Keep track of what note we are on, give lock to member that plays note
- - Conductor can check if Memeber is currently playing. If so, it waits to reassign it
- - Could have a blockingQueue, pass to each member
- - member will peak into queue, if note is theirs, take it and play it
+TODO:
+ - Song Reader Tests
+ - More validation
+ - Starvation checks, make sure no member is waiting too long
+ - Dead lock checks?
+ - race conditions should be ok
  */
 
 public class Conductor implements Runnable{
@@ -67,7 +64,7 @@ public class Conductor implements Runnable{
         final List<BellNote> song = sr.readFile(args[0]);
 
         // Validate song data
-        if (!sr.validateData(song,args[0])) {
+        if (!sr.validateNotes(song)) {
             System.err.println("Error: No valid notes found in file: " + args[0]);
             System.exit(1);
         }
