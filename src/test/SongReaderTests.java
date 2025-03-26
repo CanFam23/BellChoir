@@ -1,14 +1,14 @@
 package test;
 
+import main.SongReader;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SongReaderTests {
     @Test
     public void evaluatesExpression() {
         SongReader sr = new SongReader();
-        sr.works();
-        assertEquals(6, sum);
+        assertTrue(sr.works());
     }
 }

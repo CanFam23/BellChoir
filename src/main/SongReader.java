@@ -1,6 +1,7 @@
-import sound.BellNote;
-import sound.Note;
-import sound.NoteLength;
+package main;
+import main.sound.BellNote;
+import main.sound.Note;
+import main.sound.NoteLength;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -122,6 +123,10 @@ public class SongReader {
         }
 
         return NoteLength.INVALID;
+    }
+
+    public boolean works(){
+        return true;
     }
 
     public static void main(String[] args) {

@@ -1,5 +1,7 @@
-import sound.BellNote;
-import sound.Note;
+package main;
+
+import main.sound.BellNote;
+import main.sound.Note;
 
 import javax.sound.sampled.SourceDataLine;
 import java.util.concurrent.BlockingQueue;

@@ -1,5 +1,6 @@
-import sound.BellNote;
-import sound.Note;
+package main;
+import main.sound.BellNote;
+import main.sound.Note;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
