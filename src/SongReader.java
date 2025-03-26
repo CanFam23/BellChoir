@@ -3,39 +3,54 @@ import sound.Note;
 import sound.NoteLength;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SongReader {
-    final static String FILE_DIRECTORY = "data/";
-
-    public SongReader() {
-    }
+    public final static String FILE_DIRECTORY = "data/";
 
     public List<BellNote> readFile(String fileName) {
+        int lineCounter = 0;
         final String filePath = FILE_DIRECTORY + fileName;
         final List<BellNote> bellNotes = new ArrayList<>();
 
         try (final BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line = br.readLine();
 
+            // Read each line in file
             while (line != null) {
-                String[] tokens = line.split(" ");
+                final String[] tokens = line.split(" ");
 
-                final Note note = parseNote(tokens[0]);
-//                System.out.println(note);
+                boolean valid = true;
+                BellNote bellNote = null;
 
-                final NoteLength noteLength = parseNoteLength(tokens[1]);
-//                System.out.println(noteLength);
+                // Need 2 tokens for note, a note and the length of it
+                if (tokens.length == 2) {
+                    final Note note = parseNote(tokens[0]);
 
-                if (note != Note.INVALID && noteLength != NoteLength.INVALID) {
-                    final BellNote bellNote = new BellNote(note, noteLength);
-                    bellNotes.add(bellNote);
+                    final NoteLength noteLength = parseNoteLength(tokens[1]);
+
+                    // initialize note if valid note and note length
+                    if (note != Note.INVALID && noteLength != NoteLength.INVALID) {
+                        bellNote = new BellNote(note, noteLength);
+                    }else{
+                        valid = false;
+                    }
+                }else{
+                    valid = false;
                 }
 
+                // if valid bell note and data, add it to list
+                if (valid) {
+                    bellNotes.add(bellNote);
+                }else{
+                    System.err.println("Invalid line: '" + line + "' in file: " + fileName);
+                }
+
+                // Keep track of how many lines have been read, used for validation later
+                lineCounter++;
                 line = br.readLine();
             }
 
@@ -43,12 +58,19 @@ public class SongReader {
             System.err.println("File not found at " + filePath);
         }
 
+        // Ensure all lines contained valid notes, if not, return empty list
+        if (lineCounter != -1 && lineCounter != bellNotes.size()) {
+            System.err.println("Error: Number of valid notes ("+bellNotes.size()+") given doesn't match number of lines "+"("+lineCounter+") in file "+fileName);
+            return new ArrayList<>();
+        }
+
         return bellNotes;
     }
 
-    public boolean validateData(List<BellNote> notes, String fileName) {
+    public boolean validateNotes(List<BellNote> notes) {
         boolean success = true;
 
+        // Make sure there is at least one note
         if (notes.isEmpty()) {
             System.err.println("No valid notes found");
             success = false;
@@ -56,11 +78,13 @@ public class SongReader {
 
         //Check each bell note to ensure note and length is valid
         for (BellNote note : notes) {
+            // Check note
             if (note.getNote() == Note.INVALID) {
                 System.err.println("At least one BellNote has an invalid Note!");
                 success = false;
             }
 
+            // Check note length
             if (note.getLength() == NoteLength.INVALID) {
                 System.err.println("At least one BellNote has an invalid NoteLength!");
                 success = false;
@@ -101,10 +125,11 @@ public class SongReader {
     }
 
     public static void main(String[] args) {
-        final String file = "MaryLamb.txt";
+        final String file = "InvalidMusic.txt";
+//        final String file = "MaryLamb.txt";
         final SongReader songReader = new SongReader();
         final List<BellNote> notes = songReader.readFile(file);
-        final boolean validData = songReader.validateData(notes, file);
+        final boolean validData = songReader.validateNotes(notes);
 
         if (!validData)
             System.out.println("Data not valid!");
