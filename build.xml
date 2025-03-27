@@ -2,7 +2,7 @@
   <!-- Set global properties -->
   <property name="src" location="src"/>
   <property name="dist" location="dist"/>
-  <property name="main.class" value="Conductor"/>
+  <property name="main.class" value="main/Conductor"/>
 
 <!-- Handles the Song Argument, default is empty-->
   <target name="songarg">
