@@ -4,39 +4,29 @@ import main.sound.BellNote;
 import main.sound.Note;
 
 import javax.sound.sampled.SourceDataLine;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.Lock;
 
 public class Member implements Runnable{
     private final BellNote bn;
 
     private final Thread t;
 
-    private boolean running;
-
-    private final Lock lock;
-
-    private final BlockingQueue<BellNote> songOrder;
+    private volatile boolean running;
 
     private final SourceDataLine line;
 
-    private final CountDownLatch latch;
+    private boolean myTurn = false;
 
-    public Member(BellNote bn, int threadNum, Lock lock, BlockingQueue<BellNote> songOrder, SourceDataLine sourceDataLine, CountDownLatch latch) {
+    public Member(int threadNum, BellNote bn, SourceDataLine sourceDataLine) {
         this.bn = bn;
 
         this.t = new Thread(this, "Member " + threadNum + " plays: " + bn.toString());
 
-        this.lock = lock;
-        this.songOrder = songOrder;
         this.line = sourceDataLine;
-        this.latch = latch;
-        running = true;
     }
 
     public void start(){
         t.start();
+        running = true;
     }
 
     public void playNote() {
@@ -47,51 +37,43 @@ public class Member implements Runnable{
         line.write(Note.REST.sample(), 0, 50);
     }
 
+    public void giveTurn() {
+        synchronized (this) {
+            if (myTurn) {
+                throw new IllegalStateException("Attempt to give a turn to a member who's hasn't completed the current turn");
+            }
+            myTurn = true;
+            notify();
+            while (myTurn) {
+                try {
+                    wait();
+                } catch (InterruptedException ignored) {}
+            }
+        }
+    }
+
     @Override
     public void run() {
-        while (running) {
-//            System.out.println(t.getName() + " attempting to get lock.");
-            lock.lock();
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-//            System.out.println(t.getName() + " got the lock!");
-
-            try {
-                if(songOrder.peek() != null && songOrder.peek().equals(bn)) {
-//                    System.out.println(t.getName() + " should play their note.");
+        synchronized (this) {
+            while(running){
+                while(!myTurn){
                     try {
-                        BellNote note = songOrder.take();
-//                        System.out.println(songOrder.size() + " " + songOrder.peek());
-
-                        playNote();
+                        wait();
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        t.interrupt(); // Set the interrupt flag back to true //TODO remove?
+                        return;
                     }
                 }
-            } finally {
-                lock.unlock();
-//                System.out.println(t.getName() + " released the lock!");
+                playNote();
+                myTurn = false;
+                notify();
             }
         }
     }
 
     public void stop(){
-        running = false;
-        waitToStop();
-    }
-
-    public void waitToStop(){
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            System.err.println(t.getName() + " stop malfunction");
-        }
-    }
-
-    public Thread.State getState(){
-        return t.getState();
+        System.out.println("Stopping " + t.getName());
+        running = false; // Don't really need this line, but kept it for sanity
+        t.interrupt(); // Causes run method to return, terminated the thread
     }
 }
