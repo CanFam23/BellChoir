@@ -1,4 +1,5 @@
 package main;
+
 import main.sound.BellNote;
 import main.sound.Note;
 import main.sound.NoteLength;
@@ -9,9 +10,30 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The {@code SongReader} class handles reading and parsing text files into {@link main.sound.BellNote} objects. The class
+ * consists of the following methods:
+ * <ul>
+ *     <li>{@link #readFile(String)}</li>
+ *     <li>{@link #parseNoteLength(String)}</li>
+ *     <li>{@link #parseNote(String)}</li>
+ *     <li>{@link #validateNotes(List)}</li>
+ * </ul>
+ */
 public class SongReader {
+    /** Directory all text files are stored in. */
     public final static String FILE_DIRECTORY = "data/";
 
+    /**
+     * Reads the given file and converts each line into a {@link main.sound.BellNote} object,
+     * and returns a list of all valid BellNotes found in the file.
+     *
+     * @param fileName The file to read.
+     * @return A {@code List} of {@link main.sound.BellNote} objects, or an empty {@code List} if no valid
+     * notes are found.
+     * @see #parseNoteLength(String)
+     * @see #parseNote(String)
+     */
     public List<BellNote> readFile(String fileName) {
         final List<BellNote> bellNotes = new ArrayList<>();
 
@@ -42,17 +64,17 @@ public class SongReader {
                     // initialize note if valid note and note length
                     if (note != Note.INVALID && noteLength != NoteLength.INVALID) {
                         bellNote = new BellNote(note, noteLength);
-                    }else{
+                    } else {
                         valid = false;
                     }
-                }else{
+                } else {
                     valid = false;
                 }
 
                 // if valid bell note and data, add it to list
                 if (valid) {
                     bellNotes.add(bellNote);
-                }else{
+                } else {
                     System.err.println("Invalid line: '" + line + "' in file: " + fileName);
                 }
 
@@ -67,13 +89,23 @@ public class SongReader {
 
         // Ensure all lines contained valid notes, if not, return empty list
         if (lineCounter != -1 && lineCounter != bellNotes.size()) {
-            System.err.println("Error: Number of valid notes ("+bellNotes.size()+") given doesn't match number of lines "+"("+lineCounter+") in file "+fileName);
-//            return new ArrayList<>();
+            System.err.println("Warning: Number of valid notes (" + bellNotes.size() + ") given doesn't match number of lines " + "(" + lineCounter + ") in file " + fileName);
         }
 
         return bellNotes;
     }
 
+    /**
+     * Checks if each note in the given {@code List} of {@link main.sound.BellNote Bellnotes} is valid. <br>
+     * A BellNote is <b>valid</b> if:
+     * <ul>
+     *     <li>It's {@link main.sound.Note} is not {@link main.sound.Note#INVALID INVALID}</li>
+     *     <li>It's {@link main.sound.NoteLength} is not {@link main.sound.NoteLength#INVALID INVALID}</li>
+     * </ul>
+     *
+     * @param notes {@code List} of {@link main.sound.BellNote} objects to check.
+     * @return {@code true} if all the notes in the list are valid and there is at least one note, {@code false} otherwise.
+     */
     public boolean validateNotes(List<BellNote> notes) {
         boolean success = true;
 
@@ -102,8 +134,15 @@ public class SongReader {
         return success;
     }
 
+    /**
+     * Parses the given string into a Note.
+     *
+     * @param note String to parse.
+     * @return {@link main.sound.Note} enum which represents the Note,
+     * {@link main.sound.Note#INVALID} if the given string is not a valid Note.
+     */
     public Note parseNote(String note) {
-        if (note == null){
+        if (note == null) {
             return Note.INVALID;
         }
         try {
@@ -115,8 +154,15 @@ public class SongReader {
         return Note.INVALID;
     }
 
+    /**
+     * Parses the given string into a NoteLength.
+     *
+     * @param noteLength String to parse.
+     * @return {@link main.sound.NoteLength} enum which represents the Note Length,
+     * {@link main.sound.NoteLength#INVALID} if the given string is not a valid NoteLength.
+     */
     public NoteLength parseNoteLength(String noteLength) {
-        if (noteLength == null){
+        if (noteLength == null) {
             return NoteLength.INVALID;
         }
         try {
@@ -136,16 +182,5 @@ public class SongReader {
         }
 
         return NoteLength.INVALID;
-    }
-
-    public static void main(String[] args) {
-        final String file = "InvalidMusic.txt";
-//        final String file = "MaryLamb.txt";
-        final SongReader songReader = new SongReader();
-        final List<BellNote> notes = songReader.readFile(file);
-        final boolean validData = songReader.validateNotes(notes);
-
-        if (!validData)
-            System.out.println("Data not valid!");
     }
 }
