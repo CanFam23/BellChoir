@@ -3,29 +3,98 @@
   <property name="src" location="src"/>
   <property name="dist" location="dist"/>
   <property name="main.class" value="main/Conductor"/>
+  <property name="lib" location="lib"/>
+  <property name="test.report" location="${dist}/test-reports"/>
 
-<!-- Handles the Song Argument, default is empty-->
-  <target name="songarg">
-    <property name="song" value=""/>
-  </target>
+  <!-- JUnit5 versions, these versions intellij auto added to lib folder so continued to use them here -->
+  <property name="junit.jupiter.version" value="5.8.1"/>
+  <property name="junit.platform.version" value="1.8.1"/>
 
-<!-- Create distribution (dist) folder to store the output / final build artifacts of project -->
-  <target name="init">
-    <mkdir dir="${dist}"/>
-    <mkdir dir="${dist}/classes"/>
-  </target>
-
-<!-- Compiles Java Files, depends in init -->
-  <target name="compile" depends="init">
-    <javac srcdir="${src}" destdir="${dist}/classes"/>
-  </target>
-
-<!-- Disables including Ant’s runtime in the compilation and enables debugging symbols.-->
+  <!-- Disables including Ant's runtime in the compilation and enables debugging symbols.-->
   <presetdef name="javac">
     <javac includeantruntime="false" debug="true"/>
   </presetdef>
 
-<!-- Creates a JAR File, depends on compile -->
+  <!-- Handles the Song Argument, default is empty-->
+  <target name="songarg">
+    <property name="song" value=""/>
+  </target>
+
+  <!-- Create distribution (dist) folder to store the output / final build artifacts of project -->
+  <target name="init">
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${dist}/classes"/>
+    <mkdir dir="${test.report}"/>
+    <mkdir dir="${lib}"/>
+  </target>
+
+  <!-- Download JUnit 5 dependencies if not present -->
+  <target name="download-junit" depends="init">
+    <get src="https://repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/${junit.jupiter.version}/junit-jupiter-api-${junit.jupiter.version}.jar"
+         dest="${lib}/junit-jupiter-api-${junit.jupiter.version}.jar"
+         usetimestamp="true"
+         skipexisting="true"/>
+    <get src="https://repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/${junit.jupiter.version}/junit-jupiter-engine-${junit.jupiter.version}.jar"
+         dest="${lib}/junit-jupiter-engine-${junit.jupiter.version}.jar"
+         usetimestamp="true"
+         skipexisting="true"/>
+    <get src="https://repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/${junit.platform.version}/junit-platform-engine-${junit.platform.version}.jar"
+         dest="${lib}/junit-platform-engine-${junit.platform.version}.jar"
+         usetimestamp="true"
+         skipexisting="true"/>
+    <get src="https://repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/${junit.platform.version}/junit-platform-launcher-${junit.platform.version}.jar"
+         dest="${lib}/junit-platform-launcher-${junit.platform.version}.jar"
+         usetimestamp="true"
+         skipexisting="true"/>
+    <get src="https://repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/${junit.platform.version}/junit-platform-commons-${junit.platform.version}.jar"
+         dest="${lib}/junit-platform-commons-${junit.platform.version}.jar"
+         usetimestamp="true"
+         skipexisting="true"/>
+    <get src="https://repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+         dest="${lib}/opentest4j-1.3.0.jar"
+         usetimestamp="true"
+         skipexisting="true"/>
+    <get src="https://repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+         dest="${lib}/apiguardian-api-1.1.2.jar"
+         usetimestamp="true"
+         skipexisting="true"/>
+  </target>
+
+  <!-- Compiles Java Files -->
+  <target name="compile" depends="init">
+    <javac srcdir="${src}" destdir="${dist}/classes">
+      <classpath>
+        <!-- Needs external libraries to compile -->
+        <fileset dir="${lib}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+  <!-- Run JUnit 5 tests -->
+  <target name="test" depends="compile" description="Run JUnit 5 tests">
+<!--   haltonfailure aborts the program if an assertion error or exception is thrown (Set to false so all tests ran regardless) -->
+    <junitlauncher haltonfailure="false" printSummary="true">
+      <classpath>
+        <pathelement location="${dist}/classes"/>
+        <fileset dir="${lib}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+      <!-- Sends test results to a text file in dist.test-reports -->
+      <testclasses outputdir="${test.report}">
+        <fileset dir="${dist}/classes">
+          <include name="**/*Tests.class"/>
+          <include name="**/*Test.class"/>
+        </fileset>
+        <!-- Sends test system out and error content to text file -->
+        <listener type="legacy-plain" sendSysOut="true" sendSysErr="true"/>
+      </testclasses>
+    </junitlauncher>
+  </target>
+
+  <!-- Creates a JAR File, depends on compile -->
   <target name="jar" depends="compile">
     <jar destfile="${dist}/${ant.project.name}.jar" basedir="${dist}/classes">
       <manifest>
@@ -34,7 +103,7 @@
     </jar>
   </target>
 
-<!-- Runs the Program, depends on jar and songarg -->
+  <!-- Runs the Program, depends on jar and songarg -->
   <target name="run" depends="jar,songarg">
     <java classname="${main.class}" fork="true">
       <classpath>
@@ -44,9 +113,14 @@
     </java>
   </target>
 
-<!-- Deletes the dist/ directory (removes compiled files and JAR) -->
+  <!-- Deletes the dist/ directory (removes compiled files and JAR) -->
   <target name="clean">
     <delete dir="${dist}"/>
+  </target>
+
+  <!-- Deletes the lib/ directory (removes external libraries) -->
+  <target name="remove-libs">
+    <delete dir="${lib}"/>
   </target>
 </project>
 
