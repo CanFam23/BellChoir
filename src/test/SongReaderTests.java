@@ -5,58 +5,36 @@ import main.sound.BellNote;
 import main.sound.Note;
 import main.sound.NoteLength;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/*
-TODO:
- - Add/Remove display names to/from all
+/**
+The {@code SongReaderTests} class tests the methods in the {@link main.SongReader} class. <br>
  - readFile
-    - curr have 8 tests
+    - 8 tests <br>
  - validateNotes
-    - curr have 5 tests
+    - 5 tests <br>
  - parseNote
-    - curr have 6 tests
+    - 6 tests <br>
  - parseNoteLength
-    - curr have 8 tests
+    - 8 tests <br>
  */
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SongReaderTests {
-
-    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-    private final PrintStream originalErr = System.err;
-
+    /** {@link main.SongReader} object to use for testing. */
     private SongReader songReader;
 
     @BeforeAll
     public void setup(){
         songReader = new SongReader();
-
-        System.setErr(new PrintStream(errContent));
-    }
-
-    @AfterAll
-    public void tearDown(){
-        System.setErr(originalErr);
-        errContent.reset();
-    }
-
-    @BeforeEach
-    void beforeEach(TestInfo testInfo) {
-        System.out.println("Testing: " + testInfo.getDisplayName());
     }
 
     // readFile tests
 
     @Test
-    @DisplayName("readFile with null file")
     public void testReadFileNullFile(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile(null);
@@ -64,7 +42,6 @@ public class SongReaderTests {
     }
 
     @Test
-    @DisplayName("readFile with empty file")
     public void testReadFileEmptyFileName(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile(" ");
@@ -72,7 +49,6 @@ public class SongReaderTests {
     }
 
     @Test
-    @DisplayName("readFile with a file that doesn't exist")
     public void testReadFileFileDoesntExist(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile("NeverGonnaGiveYouUp.txt");
@@ -80,7 +56,6 @@ public class SongReaderTests {
     }
 
     @Test
-    @DisplayName("readFile with empty file")
     public void testReadFileEmptyFile(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile("EmptyFile.txt");
@@ -88,7 +63,6 @@ public class SongReaderTests {
     }
 
     @Test
-    @DisplayName("readRile with a file that contains invalid notes")
     public void testReadFileFileWithInvalidNotes(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile("InvalidMusic.txt");
@@ -97,7 +71,6 @@ public class SongReaderTests {
     }
 
     @Test
-    @DisplayName("readRile with a file that contains no notes")
     public void testReadFileFileWithRandomTextFile(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile("Text.txt");
@@ -105,7 +78,6 @@ public class SongReaderTests {
     }
 
     @Test
-    @DisplayName("readRile with a file that has a incorrect file path")
     public void testReadFileFileWithIncorrectFilePath(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile("data/MaryLamb.txt");
@@ -113,7 +85,6 @@ public class SongReaderTests {
     }
 
     @Test
-    @DisplayName("readRile with a file that contains all valid notes")
     public void testReadFileFileWithValidFileWithValidNotes(){
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile("MaryLamb.txt");
