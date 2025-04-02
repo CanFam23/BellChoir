@@ -12,7 +12,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * The {@code Conductor} class is responsible for coordinating the playback of a song
+ * by managing multiple {@link main.Member} threads. It assigns each {@link main.sound.BellNote}
+ * to a corresponding {@link main.Member} and ensures proper synchronization to maintain
+ * the song's timing.
+ *
+ * <p>The conductor uses a {@link SourceDataLine} for audio output and uses a dedicated
+ * thread to control the playback sequence. It also handles the initialization of members,
+ * playback of notes, and cleanup of resources once the song is complete.</p>
+ */
 public class Conductor implements Runnable {
+    /** Buffer used when checking if a song is taking too long. A song
+     * is allotted its sum of note length times plus this buffer amount.*/
+    private final int SONG_ALLOTTED_TIME_BUFFER_MS = 2 * 1000;
+
     /** Map that keeps track of what {@link main.Member} plays what {@link main.sound.BellNote}. */
     private final Map<BellNote, Member> members = new HashMap<>();
 
@@ -70,8 +84,8 @@ public class Conductor implements Runnable {
         final List<BellNote> song = sr.readFile(args[0]);
 
         // Validate song data
-        if (!sr.validateNotes(song)) {
-            System.err.println("Error: No valid notes found in file: " + args[0]);
+        if (song.isEmpty() || !sr.validateNotes(song)) {
+            System.err.println("Error: No notes or at least one invalid note found in file: " + args[0]);
             System.exit(1);
         }
 
@@ -138,6 +152,20 @@ public class Conductor implements Runnable {
     public void run() {
         startMembers();
 
+        /*
+        Get the amount of time I think the song is expected to take to play, which
+        is the sum of all the note lengths time in milliseconds
+         */
+        int songTime = 0;
+        for(BellNote b : song) {
+            songTime += b.getLength().getTimeMs();
+        }
+        // Start time is when the song starts playing (about)
+        final long startTime = System.currentTimeMillis();
+
+        // Total time I'm giving the program to play the song
+        final int allottedTime  = songTime + SONG_ALLOTTED_TIME_BUFFER_MS;
+
         // Loop through all the notes in the song and have the member that plays the given note play it.
         for (BellNote b : song) {
             Member member = members.get(b);
@@ -148,12 +176,20 @@ public class Conductor implements Runnable {
                 member = members.get(b);
             }
 
+            // If the elapsed time is greater than the allotted time, something could go wrong, so the program
+            // automatically ends
+            float elapsedTime = System.currentTimeMillis() - startTime;
+            if (elapsedTime > allottedTime) {
+                System.err.println("SONG EXCEEDED ALLOTTED TIME, ending program.");
+                System.exit(1);
+            }
+
             member.giveTurn();
         }
     }
 
     /**
-     * Waits for the {@link #thread} to finish it's task (Playing the song) before stopping all
+     * Waits for the {@link #thread} to finish its task (Playing the song) before stopping all
      * {@link main.Member Members} in the {@link #members} hashmap and draining/closing the {@code SourceDataLine}.
      */
     public void stop() {

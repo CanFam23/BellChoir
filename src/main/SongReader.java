@@ -25,6 +25,13 @@ public class SongReader {
     public final static String FILE_DIRECTORY = "data/";
 
     /**
+     * Constructs a new SongReader object. Currently empty constructor
+     */
+    public SongReader() {
+        //empty
+    }
+
+    /**
      * Reads the given file and converts each line into a {@link main.sound.BellNote} object,
      * and returns a list of all valid BellNotes found in the file.
      *

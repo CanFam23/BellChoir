@@ -101,7 +101,8 @@ public class Member implements Runnable {
                     try {
                         wait();
                     } catch (InterruptedException e) {
-                        t.interrupt(); // Set the interrupt flag back to true (Catching the error sets it to false)
+                        // Set the interrupt flag back to true (Catching the error sets it to false)
+                        t.interrupt(); // Not really needed but good practice (I think)
                         return;
                     }
                 }
