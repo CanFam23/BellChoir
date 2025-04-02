@@ -1,4 +1,5 @@
 package main;
+
 import main.sound.BellNote;
 import main.sound.Note;
 
@@ -6,30 +7,34 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-/*
-TODO:
- - Conductor controls tempo of program
-TODO:
- - Song Reader Tests
- - More validation
- - Starvation checks, make sure no member is waiting too long
- - Dead lock checks?
- */
-
-public class Conductor implements Runnable{
+public class Conductor implements Runnable {
+    /** Map that keeps track of what {@link main.Member} plays what {@link main.sound.BellNote}. */
     private final Map<BellNote, Member> members = new HashMap<>();
 
+    /** List of {@link main.sound.Note notes} in the song that should be played. */
     private final List<BellNote> song;
 
+    /** The {@code SourceDataLine} to write audio bytes to. */
     private SourceDataLine line;
 
+    /** The thread that will control the tempo of the song. */
     private final Thread thread;
 
+    /** Keep track of how many members are in the choir. */
     private int numMembers = 0;
 
-    public Conductor(AudioFormat af,List<BellNote> song) {
+    /**
+     * Constructs a new Conductor object.
+     *
+     * @param af   The {@link AudioFormat} to use.
+     * @param song The list of {@link main.sound.BellNote BellNotes} to play.
+     */
+    public Conductor(AudioFormat af, List<BellNote> song) {
         this.thread = new Thread(this, "Conductor");
         this.song = song;
 
@@ -40,6 +45,13 @@ public class Conductor implements Runnable{
         }
     }
 
+    /**
+     * The main method reads the given command line argument (If there is one), and attempts to read
+     * the file with the name given and convert it into a list of {@link main.sound.BellNote BellNots}
+     * to play. If successful, it will create a new {@link Conductor} object and use it to play the song.
+     *
+     * @param args Arguments passed, should only be one, the name of the file to read.
+     */
     public static void main(String[] args) {
         // Validate at least one argument was passed and the first one is not empty/null
         if (args.length == 0 || Objects.equals(args[0], "")) {
@@ -67,7 +79,7 @@ public class Conductor implements Runnable{
         final AudioFormat af =
                 new AudioFormat(Note.SAMPLE_RATE, 8, 1, true, false);
 
-        final Conductor conductor = new Conductor(af,song);
+        final Conductor conductor = new Conductor(af, song);
 
         // Play the song
         conductor.playSong();
@@ -76,6 +88,11 @@ public class Conductor implements Runnable{
         conductor.stop();
     }
 
+    /**
+     * Opens and starts the {@code SourceDataLine}, if it's unavailable, it waits three seconds and tries again. If
+     * it's still unavailable, the programs is aborted with status of 1. If it's available, the conductor thread is started
+     * and the song is played.
+     */
     public void playSong() {
         // Open and start the line, if unavailable, wait 3 seconds then try again
         try {
@@ -88,7 +105,8 @@ public class Conductor implements Runnable{
             // Wait 3 seconds
             try {
                 Thread.sleep(3000);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException ignored) {
+            }
 
             // If line is still unavailable after 3 seconds, terminate program
             try {
@@ -104,7 +122,10 @@ public class Conductor implements Runnable{
         thread.start();
     }
 
-    public void startMembers(){
+    /**
+     * Starts the threads of all {@link main.Member Members} in the {@link #members} hashmap.
+     */
+    public void startMembers() {
         for (Member member : members.values()) {
             member.start();
         }
@@ -118,7 +139,7 @@ public class Conductor implements Runnable{
         startMembers();
 
         // Loop through all the notes in the song and have the member that plays the given note play it.
-        for(BellNote b : song) {
+        for (BellNote b : song) {
             Member member = members.get(b);
 
             // If no member exists in the hashMap, add it then assign it to member so it plays the note
@@ -131,8 +152,12 @@ public class Conductor implements Runnable{
         }
     }
 
-    public void stop(){
-        try{
+    /**
+     * Waits for the {@link #thread} to finish it's task (Playing the song) before stopping all
+     * {@link main.Member Members} in the {@link #members} hashmap and draining/closing the {@code SourceDataLine}.
+     */
+    public void stop() {
+        try {
             thread.join();
         } catch (InterruptedException e) {
             System.err.println("Thread was interrupted while waiting for conductor thread to finish.");
@@ -142,18 +167,33 @@ public class Conductor implements Runnable{
         line.close();
     }
 
+    /**
+     * Adds a {@link main.Member} to the {@link #members} hashmap.
+     *
+     * @param b {@link main.sound.BellNote} the member will play.
+     */
     public void addMember(BellNote b) {
         if (!members.containsKey(b)) {
-            members.put(b,new Member(numMembers++,b,line));
+            members.put(b, new Member(numMembers++, b, line));
         }
     }
 
+    /**
+     * Calls {@link Member#stop()} on all {@link main.Member Members} in the {@link #members} hashmap.
+     */
     public void stopMembers() {
         for (Member member : members.values()) {
             member.stop();
         }
     }
 
+    /**
+     * Sets the {@link SourceDataLine}, using the provided {@link AudioFormat}.
+     * IF the line is unavailable, it waits three seconds and tries again. If
+     * it's still unavailable, the programs is aborted with status of 1.
+     *
+     * @param af The {@link AudioFormat} to use.
+     */
     private void setLine(AudioFormat af) {
         try {
             this.line = AudioSystem.getSourceDataLine(af);
@@ -162,7 +202,8 @@ public class Conductor implements Runnable{
             System.err.println("Line was unavailable, waiting 3 seconds and trying again...");
             try {
                 Thread.sleep(3000);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException ignored) {
+            }
 
             // If line is still unavailable after 3 seconds, terminate program
             try {
