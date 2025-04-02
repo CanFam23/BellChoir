@@ -61,7 +61,7 @@
   </target>
 
   <!-- Compiles Java Files -->
-  <target name="compile" depends="init">
+  <target name="compile" depends="init, download-junit">
     <javac srcdir="${src}" destdir="${dist}/classes">
       <classpath>
         <!-- Needs external libraries to compile -->
@@ -123,4 +123,3 @@
     <delete dir="${lib}"/>
   </target>
 </project>
-
