@@ -5,42 +5,51 @@ package main.sound;
  * <ul>
  *     <li>'middle A' (440Hz) is identified by "A4", and an A an octave higher would be identified as "A5".</li>
  *     <li>Sharp notes are indicated by appending S to the standard note, so middle A # would be indicated by 'A4S'.</li>
- *     <li>Flat notes are equivalent to a sharp of the lower note, so to identify B b, use 'A4S'.</li>
+ *     <li>Flat notes are equivalent to a sharp of the lower note, so to identify B flat, use 'A4F'.</li>
  *     <li>A REST note (nothing is played) is identified by 'REST'.</li>
  * </ul>
  */
 public enum Note {
-    // REST Must be the first 'Note'
     /** Constant for Rest. */
-    REST,
+    REST(0),
     /** Constant for A4. */
-    A4,
+    A4(1),
     /** Constant for A4S. */
-    A4S,
+    A4S(2),
+    /** Constant for B4F - equal to A4S in terms of sound frequency. */
+    B4F(A4S),
     /** Constant for B4. */
-    B4,
+    B4(3),
     /** Constant for C4. */
-    C4,
+    C4(4),
     /** Constant for C4S. */
-    C4S,
+    C4S(5),
+    /** Constant for D4F - equal to C4S in terms of sound frequency. */
+    D4F(C4S),
     /** Constant for D4. */
-    D4,
+    D4(6),
     /** Constant for D4S. */
-    D4S,
+    D4S(7),
+    /** Constant for E4F - equal to D4S in terms of sound frequency. */
+    E4F(D4S),
     /** Constant for E4. */
-    E4,
+    E4(8),
     /** Constant for F4. */
-    F4,
+    F4(9),
     /** Constant for F4S. */
-    F4S,
+    F4S(10),
+    /** Constant for G4F - equal to F4S in terms of sound frequency. */
+    G4F(F4S),
     /** Constant for G4. */
-    G4,
+    G4(11),
     /** Constant for G4S. */
-    G4S,
+    G4S(12),
+    /** Constant for A5F - equal to G4S in terms of sound frequency. */
+    A5F(G4S),
     /** Constant for A5. */
-    A5,
+    A5(13),
     /** Constant for any note not shown above (invalid). */
-    INVALID;
+    INVALID(0);
 
     /** The number of audio samples taken per second during audio playback (KHz) */
     public static final int SAMPLE_RATE = 48 * 1024; // ~48KHz
@@ -58,6 +67,12 @@ public enum Note {
     /** Max volume a note can be. */
     private final double MAX_VOLUME = 127.0d;
 
+    /** Reference to harmonic equal note */
+    private final Note harmonicEqual;
+
+    /** The semitone value relative to A4 (where A4=1) */
+    private final int semitone;
+
     /** A byte array representing a single measure of a sine wave sample. */
     private final byte[] sinSample = new byte[MEASURE_LENGTH_SEC * SAMPLE_RATE];
 
@@ -66,12 +81,16 @@ public enum Note {
      * This constructor calculates the frequency of the note relative to A4 (440 Hz) using the
      * twelve-tone equal temperament formula. It then generates a sin waveform for the
      * frequency and stores it in the {@code sinSample} array.
+     *
+     * @param semitone The semitone value relative to A4 (where A4=1)
      */
-    private Note() {
-        int n = this.ordinal();
-        if (n > 0) {
+    Note(int semitone) {
+        this.harmonicEqual = this;
+        this.semitone = semitone;
+
+        if (semitone > 0) {
             // Calculate the frequency!
-            final double halfStepUpFromA = n - 1;
+            final double halfStepUpFromA = semitone - 1;
             final double exp = halfStepUpFromA / 12.0d;
             final double freq = FREQUENCY_A_HZ * Math.pow(2.0d, exp);
 
@@ -84,12 +103,22 @@ public enum Note {
     }
 
     /**
+     * Constructor for flat notes that references their harmonic sharp equivalent
+     * @param harmonicEqual  The notes harmonic sharp equivalent
+     */
+    Note(Note harmonicEqual) {
+        this.harmonicEqual = harmonicEqual;
+        this.semitone = harmonicEqual.semitone;
+    }
+
+    /**
      * Gets the {@link #sinSample} array of bytes, which represents
      * single measure of a sine wave sample.
+     * <br>For flat notes, returns the sample of the harmonic equivalent.<br>
      *
-     * @return A array of bytes representing the single measure.
+     * @return An array of bytes representing the single measure.
      */
     public byte[] sample() {
-        return sinSample;
+        return harmonicEqual.sinSample;
     }
 }
