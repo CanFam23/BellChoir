@@ -31,7 +31,7 @@ public enum NoteLength {
      *
      * @param length The fraction of a full measure that this note represents.
      */
-    private NoteLength(float length) {
+    NoteLength(float length) {
         this.length = length;
         timeMs = (int) (length * Note.MEASURE_LENGTH_SEC * 1000);
     }

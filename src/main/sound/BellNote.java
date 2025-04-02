@@ -49,11 +49,10 @@ public class BellNote {
      */
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("BellNote{");
-        sb.append("note=").append(note);
-        sb.append(", length=").append(length);
-        sb.append('}');
-        return sb.toString();
+        String sb = "BellNote{" + "note=" + note +
+                ", length=" + length +
+                '}';
+        return sb;
     }
 
     /**

@@ -23,8 +23,10 @@ import java.util.Objects;
  * playback of notes, and cleanup of resources once the song is complete.</p>
  */
 public class Conductor implements Runnable {
-    /** Buffer used when checking if a song is taking too long. A song
-     * is allotted its sum of note length times plus this buffer amount.*/
+    /**
+     * Buffer used when checking if a song is taking too long. A song
+     * is allotted its sum of note length times plus this buffer amount.
+     */
     private final int SONG_ALLOTTED_TIME_BUFFER_MS = 2 * 1000;
 
     /** Map that keeps track of what {@link main.Member} plays what {@link main.sound.BellNote}. */
@@ -157,14 +159,14 @@ public class Conductor implements Runnable {
         is the sum of all the note lengths time in milliseconds
          */
         int songTime = 0;
-        for(BellNote b : song) {
+        for (BellNote b : song) {
             songTime += b.getLength().getTimeMs();
         }
         // Start time is when the song starts playing (about)
         final long startTime = System.currentTimeMillis();
 
         // Total time I'm giving the program to play the song
-        final int allottedTime  = songTime + SONG_ALLOTTED_TIME_BUFFER_MS;
+        final int allottedTime = songTime + SONG_ALLOTTED_TIME_BUFFER_MS;
 
         // Loop through all the notes in the song and have the member that plays the given note play it.
         for (BellNote b : song) {

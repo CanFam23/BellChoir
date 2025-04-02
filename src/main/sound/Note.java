@@ -104,7 +104,8 @@ public enum Note {
 
     /**
      * Constructor for flat notes that references their harmonic sharp equivalent
-     * @param harmonicEqual  The notes harmonic sharp equivalent
+     *
+     * @param harmonicEqual The notes harmonic sharp equivalent
      */
     Note(Note harmonicEqual) {
         this.harmonicEqual = harmonicEqual;
