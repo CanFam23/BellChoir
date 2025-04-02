@@ -68,8 +68,7 @@ public class SongReaderTests {
     public void testReadFileFileWithInvalidNotes() {
         assertNotNull(songReader);
         final List<BellNote> notes = songReader.readFile("InvalidMusic.txt");
-        // There is only one valid note in the given file
-        assertEquals(1, notes.size(), "readFile function should not add invalid notes to list of notes to return!");
+        assertEquals(0, notes.size(), "readFile function should not return any notes when the given file contains invalid notes!");
     }
 
     @Test

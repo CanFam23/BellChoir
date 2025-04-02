@@ -50,6 +50,7 @@ public class SongReader {
 
             // Read each line in file
             while (line != null) {
+                line = line.strip();
                 final String[] tokens = line.split(" ");
 
                 boolean valid = true;
@@ -57,9 +58,10 @@ public class SongReader {
 
                 // Need 2 tokens for note, a note and the length of it
                 if (tokens.length == 2) {
-                    final Note note = parseNote(tokens[0]);
+                    // Strip both strings to ensure no whitespace is in them
+                    final Note note = parseNote(tokens[0].strip());
 
-                    final NoteLength noteLength = parseNoteLength(tokens[1]);
+                    final NoteLength noteLength = parseNoteLength(tokens[1].strip());
 
                     // initialize note if valid note and note length
                     if (note != Note.INVALID && noteLength != NoteLength.INVALID) {
@@ -90,6 +92,7 @@ public class SongReader {
         // Ensure all lines contained valid notes, if not, return empty list
         if (lineCounter != -1 && lineCounter != bellNotes.size()) {
             System.err.println("Warning: Number of valid notes (" + bellNotes.size() + ") given doesn't match number of lines " + "(" + lineCounter + ") in file " + fileName);
+            return new ArrayList<>();
         }
 
         return bellNotes;
@@ -146,6 +149,7 @@ public class SongReader {
             return Note.INVALID;
         }
         try {
+            note = note.strip();
             //Returns the enum constant of the note with the specified name.
             return Note.valueOf(note);
         } catch (IllegalArgumentException ignored) {
@@ -166,6 +170,7 @@ public class SongReader {
             return NoteLength.INVALID;
         }
         try {
+            noteLength = noteLength.strip();
             final int noteInt = Integer.parseInt(noteLength);
             //Convert to float
             final float noteLen = (float) 1 / noteInt;
