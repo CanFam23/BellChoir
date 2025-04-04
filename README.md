@@ -14,7 +14,11 @@
 
 ## Overview
 
-Bell Choir is a Java application that simulates a multi-threaded bell choir where individual threads ([Members](src/main/Member.java)) each play their own [BellNote](src/main/sound/BellNote.java). The [Conductor](src/main/Conductor.java) class orchestrates the choir by coordinating when each member should play their notes.
+Bell Choir is a Java application that simulates a
+multi-threaded bell choir where individual threads 
+([Members](src/main/Member.java)) each play their own [BellNote](src/main/sound/BellNote.java). 
+The [Conductor](src/main/Conductor.java) class orchestrates the choir by
+coordinating when each member should play their notes.
 
 The project demonstrates key multi-threading concepts:
 - Thread synchronization for musical timing
@@ -22,9 +26,16 @@ The project demonstrates key multi-threading concepts:
 - Real-time audio synthesis for bell sounds
 - Error handling for invalid notes and timeout conditions
 
-Songs are loaded from text files in the [data](data/) directory, which contain sequences of notes and their durations. The [SongReader](src/main/SongReader.java) parses these files and converts them into playable note sequences.
+Songs are loaded from text files in the [data](data/) directory, 
+which contain sequences of notes and their durations. 
+The [SongReader](src/main/SongReader.java) parses these files and converts 
+them into playable note sequences.
 
-Each Member thread waits for its turn to play, then produces its assigned note with the correct pitch and duration. The Conductor ensures that all notes play in the proper sequence, creating a synchronized musical performance.
+Each Member thread waits for its turn to play, 
+then produces its assigned note with the correct 
+pitch and duration. The Conductor ensures that 
+all notes play in the proper sequence, creating a 
+synchronized musical performance.
 
 The project was built using Java and Apache Ant, with JUnit tests to verify functionality of key components like the SongReader.
 
@@ -60,7 +71,7 @@ To test the [SongReader](src/main/SongReader.java) class, I utilized [Junit 5](h
 - **API Guardian (1.1.2) - API Status Annotations**  
   [apiguardian-api-1.1.2.jar](https://repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar)  
 
-**NOTE**: This project is not tested with other versions of each dependency. I believe it will work with most version of JUnit 5, but I'm 99% sure it will not work with JUnit 4.
+**NOTE**: This project is not tested with other versions of each dependency. I believe it will work with most versions of JUnit 5, but I'm 99% sure it will not work with JUnit 4.
 
 To download the required dependencies, you can:
 1. Navigate to the repository
@@ -99,7 +110,7 @@ The program takes one argument, `song`, which is the name of the file to read to
 - **[MaryLamb.txt](data/MaryLamb.txt)**: The classic, Mary had a Little Lamb
 - **[RickRolled.txt](data/RickRolled.txt)**: Self explanatory ([hopefully](https://www.youtube.com/watch?v=dQw4w9WgXcQ))
 - **[InvalidMusic.txt](data/InvalidMusic.txt)**: Contains mostly invalid notes, mainly used for testing.
-- **[EmptyFile.txt](data/EmptyFile.txt)**: A empty file.
+- **[EmptyFile.txt](data/EmptyFile.txt)**: A empty file. Used to test program with empty file passed.
 - **[Text.txt](data/Text.txt)**: A text file with random text, also used for testing.
 
 
@@ -217,3 +228,10 @@ Total time: 2 seconds
 ```
 
 After running, the program will produce a test report, which can be found in the `dist/test-reports` directory. The report contains what tests were run and the Standard Out/Error each test produced. If a test fails, it will also include the cause of the fail in the file. 
+
+I wanted to test the [Member](src/main/Member.java) and [Conductor](src/main/Conductor.java) classes, 
+but since they primarily handle audio playback and 
+threading, I figured it would be easier not to. 
+Since the [SongReader](src/main/SongReader.java) class manages all input reading, 
+parsing, and validation, I decided that testing this 
+class alone would be sufficient. Through manual testing, I found no issues with the other classes, but that doesn’t necessarily mean there aren’t any...
