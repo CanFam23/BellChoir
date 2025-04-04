@@ -10,9 +10,6 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import java.util.*;
 
-// TODO: Add flat notes to a song
-// TODO: External Doc
-
 /**
  * The {@code Conductor} class is responsible for coordinating the playback of a song
  * by managing multiple {@link main.Member} threads. It assigns each {@link main.sound.BellNote}
@@ -229,7 +226,7 @@ public class Conductor implements Runnable {
         if (!members.containsKey(b.getNote())) {
             final Queue<NoteLength> noteLengthQueue = new ArrayDeque<>();
             noteLengthQueue.add(b.getLength());
-            members.put(b.getNote(), new Member(1+numMembers++, b.getNote(), line, noteLengthQueue));
+            members.put(b.getNote(), new Member(1 + numMembers++, b.getNote(), line, noteLengthQueue));
         } else {
             // If the note is already in the members map, add the length to the member's queue
             members.get(b.getNote()).addLength(b.getLength());

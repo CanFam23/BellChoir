@@ -34,7 +34,7 @@ public class Member implements Runnable {
      * Constructs a new {@code Member} object.
      *
      * @param threadNum      Number of member.
-     * @param note              {@link main.sound.Note} the member will play.
+     * @param note           {@link main.sound.Note} the member will play.
      * @param sourceDataLine The {@link SourceDataLine} to write the audio bytes to.
      * @param noteLengths    The {@code Queue} of {@link main.sound.NoteLength NoteLengths}, helps to keep track of
      *                       how long to play the note each time.
