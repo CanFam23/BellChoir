@@ -2,15 +2,16 @@ package main;
 
 import main.sound.BellNote;
 import main.sound.Note;
+import main.sound.NoteLength;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
+// TODO: Add flat notes to a song
+// TODO: External Doc
 
 /**
  * The {@code Conductor} class is responsible for coordinating the playback of a song
@@ -30,7 +31,7 @@ public class Conductor implements Runnable {
     private final int SONG_ALLOTTED_TIME_BUFFER_MS = 2 * 1000;
 
     /** Map that keeps track of what {@link main.Member} plays what {@link main.sound.BellNote}. */
-    private final Map<BellNote, Member> members = new HashMap<>();
+    private final Map<Note, Member> members = new HashMap<>();
 
     /** List of {@link main.sound.Note notes} in the song that should be played. */
     private final List<BellNote> song;
@@ -91,6 +92,8 @@ public class Conductor implements Runnable {
             System.exit(1);
         }
 
+        System.out.println("Successfully loaded " + args[0]);
+
         // Create the audio format
         final AudioFormat af =
                 new AudioFormat(Note.SAMPLE_RATE, 8, 1, true, false);
@@ -141,7 +144,7 @@ public class Conductor implements Runnable {
     /**
      * Starts the threads of all {@link main.Member Members} in the {@link #members} hashmap.
      */
-    public void startMembers() {
+    private void startMembers() {
         for (Member member : members.values()) {
             member.start();
         }
@@ -168,17 +171,20 @@ public class Conductor implements Runnable {
         // Total time I'm giving the program to play the song
         final int allottedTime = songTime + SONG_ALLOTTED_TIME_BUFFER_MS;
 
+        System.out.println("Playing song...");
+
         // Loop through all the notes in the song and have the member that plays the given note play it.
         for (BellNote b : song) {
-            Member member = members.get(b);
+            final Note noteToPlay = b.getNote();
+            Member member = members.get(noteToPlay);
 
             // If no member exists in the hashMap, add it then assign it to member so it plays the note
             if (member == null) {
                 addMember(b);
-                member = members.get(b);
+                member = members.get(noteToPlay);
             }
 
-            // If the elapsed time is greater than the allotted time, something could go wrong, so the program
+            // If the elapsed time is greater than the allotted time, something could have gone wrong, so the program
             // automatically ends
             float elapsedTime = System.currentTimeMillis() - startTime;
             if (elapsedTime > allottedTime) {
@@ -188,6 +194,8 @@ public class Conductor implements Runnable {
 
             member.giveTurn();
         }
+
+        System.out.println("Song over");
     }
 
     /**
@@ -210,16 +218,28 @@ public class Conductor implements Runnable {
      *
      * @param b {@link main.sound.BellNote} the member will play.
      */
-    public void addMember(BellNote b) {
-        if (!members.containsKey(b)) {
-            members.put(b, new Member(numMembers++, b, line));
+    private void addMember(BellNote b) {
+        // If the note is invalid, terminate the program
+        if (b.getNote() == Note.INVALID || b.getLength() == NoteLength.INVALID) {
+            System.err.println("Invalid note: " + b.getNote() + " found in song, terminating program.");
+            System.exit(1);
+        }
+
+        // If the note is not in the members map, add it
+        if (!members.containsKey(b.getNote())) {
+            final Queue<NoteLength> noteLengthQueue = new ArrayDeque<>();
+            noteLengthQueue.add(b.getLength());
+            members.put(b.getNote(), new Member(1+numMembers++, b.getNote(), line, noteLengthQueue));
+        } else {
+            // If the note is already in the members map, add the length to the member's queue
+            members.get(b.getNote()).addLength(b.getLength());
         }
     }
 
     /**
      * Calls {@link Member#stop()} on all {@link main.Member Members} in the {@link #members} hashmap.
      */
-    public void stopMembers() {
+    private void stopMembers() {
         for (Member member : members.values()) {
             member.stop();
         }

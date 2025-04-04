@@ -1,9 +1,10 @@
 package main;
 
-import main.sound.BellNote;
 import main.sound.Note;
+import main.sound.NoteLength;
 
 import javax.sound.sampled.SourceDataLine;
+import java.util.Queue;
 
 /**
  * The {@code Member} class represents a musical member that plays a {@link main.sound.BellNote}
@@ -12,7 +13,7 @@ import javax.sound.sampled.SourceDataLine;
  */
 public class Member implements Runnable {
     /** The {@link main.sound.BellNote} that this member will play. */
-    private final BellNote bn;
+    private final Note note;
 
     /** The thread associated with this member, which executes the {@link #run()} method. */
     private final Thread t;
@@ -26,19 +27,26 @@ public class Member implements Runnable {
     /** A flag indicating whether it is this member's turn to play. */
     private boolean myTurn = false;
 
+    /** Keeps track of what {@link main.sound.NoteLength} to play. Will play them in the order of the queue. */
+    private final Queue<NoteLength> noteLengths;
+
     /**
      * Constructs a new {@code Member} object.
      *
      * @param threadNum      Number of member.
-     * @param bn             {@link main.sound.BellNote} the member will play.
+     * @param note              {@link main.sound.Note} the member will play.
      * @param sourceDataLine The {@link SourceDataLine} to write the audio bytes to.
+     * @param noteLengths    The {@code Queue} of {@link main.sound.NoteLength NoteLengths}, helps to keep track of
+     *                       how long to play the note each time.
      */
-    public Member(int threadNum, BellNote bn, SourceDataLine sourceDataLine) {
-        this.bn = bn;
+    public Member(int threadNum, Note note, SourceDataLine sourceDataLine, Queue<NoteLength> noteLengths) {
+        this.note = note;
 
-        this.t = new Thread(this, "Member " + threadNum + " plays: " + bn.toString());
+        this.t = new Thread(this, "Member " + threadNum + " plays: " + note.toString());
 
         this.line = sourceDataLine;
+
+        this.noteLengths = noteLengths;
     }
 
     /**
@@ -50,13 +58,21 @@ public class Member implements Runnable {
     }
 
     /**
-     * Plays the members {@link main.sound.BellNote} using the given {@link SourceDataLine}.
+     * Plays the members {@link main.sound.BellNote} using the given {@link SourceDataLine}. The method
+     * takes the head of the {@link #noteLengths} queue and plays the {@code Members} note for that amount of time.
      */
     public void playNote() {
-        System.out.println(t.getName());
-        final int ms = Math.min(bn.getLength().getTimeMs(), Note.MEASURE_LENGTH_SEC * 1000);
+        if (noteLengths.isEmpty()) {
+            System.out.println(t.getName() + " No more notes left for me to play.");
+            return;
+        }
+
+        final NoteLength noteLength = noteLengths.poll();
+        // Uncomment this line to see what threads play what note and when
+//        System.out.println(t.getName() + " Length: " + noteLength);
+        final int ms = Math.min(noteLength.getTimeMs(), Note.MEASURE_LENGTH_SEC * 1000);
         final int length = Note.SAMPLE_RATE * ms / 1000;
-        line.write(bn.getNote().sample(), 0, length);
+        line.write(note.sample(), 0, length);
         line.write(Note.REST.sample(), 0, 50);
     }
 
@@ -103,7 +119,9 @@ public class Member implements Runnable {
                     } catch (InterruptedException e) {
                         // Set the interrupt flag back to true (Catching the error sets it to false)
                         t.interrupt(); // Not really needed but good practice (I think)
-                        return;
+                        if (!running) {
+                            return;
+                        }
                     }
                 }
                 playNote();
@@ -111,6 +129,15 @@ public class Member implements Runnable {
                 notify();
             }
         }
+    }
+
+    /**
+     * Adds the given {@link main.sound.NoteLength} to the {@link #noteLengths queue} of {@code NoteLengths} to play.
+     *
+     * @param noteLength {@link main.sound.NoteLength} to add.
+     */
+    public void addLength(NoteLength noteLength) {
+        noteLengths.add(noteLength);
     }
 
     /**
