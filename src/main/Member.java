@@ -113,16 +113,13 @@ public class Member implements Runnable {
     public void run() {
         synchronized (this) {
             while (running) {
-                while (!myTurn) {
+                while (!myTurn && running) {
                     try {
                         wait();
-                    } catch (InterruptedException e) {
-                        // Set the interrupt flag back to true (Catching the error sets it to false)
-                        t.interrupt(); // Not really needed but good practice (I think)
-                        if (!running) {
-                            return;
-                        }
-                    }
+                    } catch (InterruptedException ignored) {}
+                }
+                if(!running){
+                    continue;
                 }
                 playNote();
                 myTurn = false;
@@ -141,10 +138,12 @@ public class Member implements Runnable {
     }
 
     /**
-     * Sets {@link #running} to {@code false} and interrupts the {@link #t thread} in case it's waiting.
+     * Sets {@link #running} to {@code false} and notifies the {@link #t thread} in case it's waiting.
      */
     public void stop() {
-        running = false; // Don't really need this line, but kept it for sanity
-        t.interrupt(); // Causes run method to return, terminated the thread
+        running = false;
+        synchronized (this) {
+            notify();
+        }
     }
 }

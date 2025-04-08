@@ -23,9 +23,9 @@ import java.util.*;
 public class Conductor implements Runnable {
     /**
      * Buffer used when checking if a song is taking too long. A song
-     * is allotted its sum of note length times plus this buffer amount.
+     * is allotted its sum of note length times this multiplier.
      */
-    private final int SONG_ALLOTTED_TIME_BUFFER_MS = 2 * 1000;
+    private final int SONG_ALLOTTED_TIME_BUFFER_MULTIPLIER = 2;
 
     /** Map that keeps track of what {@link main.Member} plays what {@link main.sound.BellNote}. */
     private final Map<Note, Member> members = new HashMap<>();
@@ -69,13 +69,13 @@ public class Conductor implements Runnable {
     public static void main(String[] args) {
         // Validate at least one argument was passed and the first one is not empty/null
         if (args.length == 0 || Objects.equals(args[0], "")) {
-            System.err.println("Error: No file provided to read song from.");
+            System.err.println("Conductor.main Error: No file provided to read song from.");
             System.exit(1);
         }
 
         // Validate only one argument was passed
         if (args.length > 1) {
-            System.err.println("Error: More than one argument provided to program, only 1 argument is accepted (The name of the file to read from).");
+            System.err.println("Conductor.main Error: More than one argument provided to program, only 1 argument is accepted (The name of the file to read from).");
             System.exit(1);
         }
 
@@ -85,7 +85,7 @@ public class Conductor implements Runnable {
 
         // Validate song data
         if (song.isEmpty() || !sr.validateNotes(song)) {
-            System.err.println("Error: No notes or at least one invalid note found in file: " + args[0]);
+            System.err.println("Conductor.main Error: No notes or at least one invalid note found in file: " + args[0]);
             System.exit(1);
         }
 
@@ -129,7 +129,7 @@ public class Conductor implements Runnable {
                 line.open();
                 line.start();
             } catch (LineUnavailableException lue) {
-                System.err.println("Line still unavailable when trying to open/start it after waiting 3 seconds, aborting");
+                System.err.println("playSong: Line still unavailable when trying to open/start it after waiting 3 seconds, aborting");
                 System.exit(1);
             }
 
@@ -155,8 +155,8 @@ public class Conductor implements Runnable {
         startMembers();
 
         /*
-        Get the amount of time I think the song is expected to take to play, which
-        is the sum of all the note lengths time in milliseconds
+         * Get the amount of time I think the song is expected to take to play, which
+         * is the sum of all the note lengths time in milliseconds
          */
         int songTime = 0;
         for (BellNote b : song) {
@@ -166,7 +166,7 @@ public class Conductor implements Runnable {
         final long startTime = System.currentTimeMillis();
 
         // Total time I'm giving the program to play the song
-        final int allottedTime = songTime + SONG_ALLOTTED_TIME_BUFFER_MS;
+        final int allottedTime = songTime * SONG_ALLOTTED_TIME_BUFFER_MULTIPLIER;
 
         System.out.println("Playing song...");
 
@@ -185,7 +185,7 @@ public class Conductor implements Runnable {
             // automatically ends
             float elapsedTime = System.currentTimeMillis() - startTime;
             if (elapsedTime > allottedTime) {
-                System.err.println("SONG EXCEEDED ALLOTTED TIME, ending program.");
+                System.err.println("Conductor.run(): SONG EXCEEDED ALLOTTED TIME, ending program.");
                 System.exit(1);
             }
 
@@ -218,7 +218,7 @@ public class Conductor implements Runnable {
     private void addMember(BellNote b) {
         // If the note is invalid, terminate the program
         if (b.getNote() == Note.INVALID || b.getLength() == NoteLength.INVALID) {
-            System.err.println("Invalid note: " + b.getNote() + " found in song, terminating program.");
+            System.err.println("addMember: Invalid note: " + b.getNote() + " found in song, terminating program.");
             System.exit(1);
         }
 
@@ -264,7 +264,7 @@ public class Conductor implements Runnable {
             try {
                 this.line = AudioSystem.getSourceDataLine(af);
             } catch (LineUnavailableException lue) {
-                System.err.println("Line still unavailable after waiting 3 seconds, aborting");
+                System.err.println("setLine: Line still unavailable after waiting 3 seconds, aborting");
                 System.exit(1);
             }
         }

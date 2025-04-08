@@ -84,7 +84,7 @@ public class SongReader {
                 if (valid) {
                     bellNotes.add(bellNote);
                 } else {
-                    System.err.println("Invalid line: '" + line + "' in file: " + fileName);
+                    System.err.println("Invalid line <"+(lineCounter+1)+ ">: '" + line + "' in file: " + fileName);
                 }
 
                 // Keep track of how many lines have been read, used for validation later
